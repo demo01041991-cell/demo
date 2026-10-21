@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexAuth — Sign In &amp; Register</title>
+  <meta name="description" content="NexAuth — A premium, secure authentication experience. Sign in or create your account with a sleek modern interface." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Animated background particles canvas -->
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- Floating glowing orbs -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
+  <!-- Main auth wrapper -->
+  <div class="auth-wrapper">
+
+    <!-- ===== SIGN IN PAGE ===== -->
+    <div class="auth-card" id="signin-card">
+      <!-- Left panel -->
+      <div class="card-panel card-panel--left">
+        <div class="panel-content">
+          <div class="brand-logo">
+            <span class="logo-icon">&#11041;</span>
+            <span class="logo-text">NexAuth</span>
+          </div>
+          <h1 class="panel-headline">Welcome<br /><span class="gradient-text">Back.</span></h1>
+          <p class="panel-sub">Sign in to continue your journey and access your personalized dashboard.</p>
+          <div class="panel-features">
+            <div class="feature-item"><span class="feature-icon">&#128274;</span> Military-grade encryption</div>
+            <div class="feature-item"><span class="feature-icon">&#9889;</span> Instant access, zero lag</div>
+            <div class="feature-item"><span class="feature-icon">&#128737;</span> Two-factor authentication</div>
+          </div>
+          <div class="panel-switch">
+            <p>Don't have an account?</p>
+            <button class="switch-btn" id="goto-register">Create Account &rarr;</button>
+          </div>
+        </div>
+        <div class="panel-art">
+          <div class="art-circle art-c1"></div>
+          <div class="art-circle art-c2"></div>
+          <div class="art-circle art-c3"></div>
+        </div>
+      </div>
+
+      <!-- Right panel: form -->
+      <div class="card-panel card-panel--right">
+        <div class="form-wrapper">
+          <div class="form-header">
+            <h2 class="form-title">Sign In</h2>
+            <p class="form-subtitle">Enter your credentials to access your account</p>
+          </div>
+
+          <!-- Social login -->
+          <div class="social-row">
+            <button class="social-btn" id="signin-google" aria-label="Sign in with Google">
+              <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              <span>Google</span>
+            </button>
+            <button class="social-btn" id="signin-github" aria-label="Sign in with GitHub">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg>
+              <span>GitHub</span>
+            </button>
+          </div>
+
+          <div class="divider"><span>or continue with email</span></div>
+
+          <form id="signin-form" novalidate>
+            <div class="field-group" id="si-email-group">
+              <label class="field-label" for="si-email">Email Address</label>
+              <div class="field-wrap">
+                <span class="field-icon">&#9993;</span>
+                <input class="field-input" type="email" id="si-email" name="email" placeholder="you@example.com" autocomplete="email" />
+              </div>
+              <span class="field-error" id="si-email-err"></span>
+            </div>
+
+            <div class="field-group" id="si-pass-group">
+              <label class="field-label" for="si-password">Password</label>
+              <div class="field-wrap">
+                <span class="field-icon">&#128273;</span>
+                <input class="field-input" type="password" id="si-password" name="password" placeholder="&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;" autocomplete="current-password" />
+                <button type="button" class="toggle-pass" id="si-toggle-pass" aria-label="Toggle password visibility">&#128065;</button>
+              </div>
+              <span class="field-error" id="si-pass-err"></span>
+            </div>
+
+            <div class="form-row">
+              <label class="checkbox-label" for="si-remember">
+                <input type="checkbox" id="si-remember" />
+                <span class="checkbox-custom"></span>
+                Remember me
+              </label>
+              <a href="#" class="forgot-link" id="forgot-pass-link">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="submit-btn" id="signin-submit-btn">
+              <span class="btn-text">Sign In</span>
+              <span class="btn-loader" hidden>
+                <span class="spinner"></span>
+              </span>
+              <span class="btn-arrow">&rarr;</span>
+            </button>
+          </form>
+
+          <p class="form-footer-note">
+            New here? <button class="text-link" id="goto-register-2">Create a free account</button>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== REGISTER PAGE ===== -->
+    <div class="auth-card hidden" id="register-card">
+      <!-- Left panel -->
+      <div class="card-panel card-panel--left card-panel--register">
+        <div class="panel-content">
+          <div class="brand-logo">
+            <span class="logo-icon">&#11041;</span>
+            <span class="logo-text">NexAuth</span>
+          </div>
+          <h1 class="panel-headline">Join the<br /><span class="gradient-text">Future.</span></h1>
+          <p class="panel-sub">Create your account in seconds and unlock a world of possibilities at your fingertips.</p>
+          <div class="panel-features">
+            <div class="feature-item"><span class="feature-icon">&#128640;</span> Get started instantly</div>
+            <div class="feature-item"><span class="feature-icon">&#127919;</span> Personalized experience</div>
+            <div class="feature-item"><span class="feature-icon">&#128142;</span> Premium features included</div>
+          </div>
+          <div class="panel-switch">
+            <p>Already have an account?</p>
+            <button class="switch-btn" id="goto-signin">Sign In &rarr;</button>
+          </div>
+        </div>
+        <div class="panel-art">
+          <div class="art-circle art-c1"></div>
+          <div class="art-circle art-c2"></div>
+          <div class="art-circle art-c3"></div>
+        </div>
+      </div>
+
+      <!-- Right panel: form -->
+      <div class="card-panel card-panel--right">
+        <div class="form-wrapper">
+          <div class="form-header">
+            <h2 class="form-title">Create Account</h2>
+            <p class="form-subtitle">Fill in the details below to get started for free</p>
+          </div>
+
+          <!-- Social signup -->
+          <div class="social-row">
+            <button class="social-btn" id="reg-google" aria-label="Sign up with Google">
+              <svg viewBox="0 0 24 24" width="20" height="20"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              <span>Google</span>
+            </button>
+            <button class="social-btn" id="reg-github" aria-label="Sign up with GitHub">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2z"/></svg>
+              <span>GitHub</span>
+            </button>
+          </div>
+
+          <div class="divider"><span>or continue with email</span></div>
+
+          <form id="register-form" novalidate>
+            <div class="fields-two-col">
+              <div class="field-group" id="reg-fname-group">
+                <label class="field-label" for="reg-fname">First Name</label>
+                <div class="field-wrap">
+                  <span class="field-icon">&#128100;</span>
+                  <input class="field-input" type="text" id="reg-fname" name="fname" placeholder="John" autocomplete="given-name" />
+                </div>
+                <span class="field-error" id="reg-fname-err"></span>
+              </div>
+              <div class="field-group" id="reg-lname-group">
+                <label class="field-label" for="reg-lname">Last Name</label>
+                <div class="field-wrap">
+                  <span class="field-icon">&#128100;</span>
+                  <input class="field-input" type="text" id="reg-lname" name="lname" placeholder="Doe" autocomplete="family-name" />
+                </div>
+                <span class="field-error" id="reg-lname-err"></span>
+              </div>
+            </div>
+
+            <div class="field-group" id="reg-email-group">
+              <label class="field-label" for="reg-email">Email Address</label>
+              <div class="field-wrap">
+                <span class="field-icon">&#9993;</span>
+                <input class="field-input" type="email" id="reg-email" name="email" placeholder="you@example.com" autocomplete="email" />
+              </div>
+              <span class="field-error" id="reg-email-err"></span>
+            </div>
+
+            <div class="field-group" id="reg-pass-group">
+              <label class="field-label" for="reg-password">Password</label>
+              <div class="field-wrap">
+                <span class="field-icon">&#128273;</span>
+                <input class="field-input" type="password" id="reg-password" name="password" placeholder="Create a strong password" autocomplete="new-password" />
+                <button type="button" class="toggle-pass" id="reg-toggle-pass" aria-label="Toggle password visibility">&#128065;</button>
+              </div>
+              <span class="field-error" id="reg-pass-err"></span>
+              <div class="strength-bar-wrap" id="strength-bar-wrap">
+                <div class="strength-bar">
+                  <div class="strength-fill" id="strength-fill"></div>
+                </div>
+                <span class="strength-label" id="strength-label">Strength</span>
+              </div>
+            </div>
+
+            <div class="field-group" id="reg-cpass-group">
+              <label class="field-label" for="reg-cpassword">Confirm Password</label>
+              <div class="field-wrap">
+                <span class="field-icon">&#128273;</span>
+                <input class="field-input" type="password" id="reg-cpassword" name="cpassword" placeholder="Repeat your password" autocomplete="new-password" />
+                <button type="button" class="toggle-pass" id="reg-toggle-cpass" aria-label="Toggle confirm password visibility">&#128065;</button>
+              </div>
+              <span class="field-error" id="reg-cpass-err"></span>
+            </div>
+
+            <label class="checkbox-label terms-label" for="reg-terms">
+              <input type="checkbox" id="reg-terms" />
+              <span class="checkbox-custom"></span>
+              I agree to the <a href="#" class="inline-link">Terms of Service</a> and <a href="#" class="inline-link">Privacy Policy</a>
+            </label>
+            <span class="field-error" id="reg-terms-err"></span>
+
+            <button type="submit" class="submit-btn" id="register-submit-btn">
+              <span class="btn-text">Create Account</span>
+              <span class="btn-loader" hidden>
+                <span class="spinner"></span>
+              </span>
+              <span class="btn-arrow">&rarr;</span>
+            </button>
+          </form>
+
+          <p class="form-footer-note">
+            Already a member? <button class="text-link" id="goto-signin-2">Sign in here</button>
+          </p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast" role="alert" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
