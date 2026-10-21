@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexAuth — Dashboard</title>
+  <meta name="description" content="NexAuth Dashboard — Upload and preview your Excel data with a stunning interface." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* =============================================
+       NexAuth Dashboard — Styles
+       ============================================= */
+    :root {
+      --clr-bg-deep:      hsl(230, 35%, 6%);
+      --clr-bg-card:      hsl(230, 28%, 10%);
+      --clr-panel-left:   hsl(250, 40%, 12%);
+      --clr-accent-1:     hsl(260, 90%, 65%);
+      --clr-accent-2:     hsl(180, 80%, 55%);
+      --clr-accent-3:     hsl(210, 100%, 60%);
+      --clr-text-primary: hsl(220, 20%, 92%);
+      --clr-text-muted:   hsl(220, 10%, 55%);
+      --clr-text-faint:   hsl(220, 10%, 40%);
+      --clr-input-bg:     hsl(230, 25%, 14%);
+      --clr-input-border: hsl(230, 25%, 22%);
+      --clr-success:      hsl(145, 70%, 50%);
+      --clr-error:        hsl(355, 85%, 60%);
+      --clr-warning:      hsl(38, 92%, 55%);
+      --gradient-main:    linear-gradient(135deg, var(--clr-accent-1), var(--clr-accent-2));
+      --gradient-btn:     linear-gradient(135deg, hsl(260,90%,60%), hsl(210,100%,55%));
+      --radius-card:      20px;
+      --shadow-card:      0 32px 80px hsl(0,0%,0%,0.5), 0 0 0 1px hsl(230,30%,18%);
+      --trans-fast:       150ms cubic-bezier(0.4,0,0.2,1);
+      --trans-med:        300ms cubic-bezier(0.4,0,0.2,1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', 'Outfit', system-ui, sans-serif;
+      background-color: var(--clr-bg-deep);
+      color: var(--clr-text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ---- Particle canvas ---- */
+    #particles-canvas {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    }
+
+    /* ---- Background orbs ---- */
+    .bg-orb { position: fixed; border-radius: 50%; filter: blur(90px); opacity: 0.15; z-index: 0; pointer-events: none; animation: orb-float 8s ease-in-out infinite alternate; }
+    .orb-1 { width: 500px; height: 500px; background: var(--clr-accent-1); top: -160px; left: -120px; }
+    .orb-2 { width: 380px; height: 380px; background: var(--clr-accent-2); bottom: -80px; right: -80px; animation-delay: -3s; }
+    .orb-3 { width: 280px; height: 280px; background: var(--clr-accent-3); top: 40%; right: 8%; animation-delay: -6s; }
+    @keyframes orb-float { from { transform: translateY(0) scale(1); } to { transform: translateY(40px) scale(1.08); } }
+
+    /* ---- Loading screen ---- */
+    #loading-screen {
+      position: fixed; inset: 0; z-index: 9999; background: var(--clr-bg-deep);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
+    }
+    .loading-logo {
+      font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 700;
+      background: var(--gradient-main); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+    .loading-spinner {
+      width: 36px; height: 36px; border: 3px solid hsl(260,40%,30%);
+      border-top-color: var(--clr-accent-1); border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ---- Layout ---- */
+    .dashboard-layout {
+      position: relative; z-index: 10; display: flex; flex-direction: column; min-height: 100vh;
+    }
+
+    /* ---- Navbar ---- */
+    .navbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 40px; border-bottom: 1px solid hsl(230,25%,15%);
+      background: hsl(230,35%,7%,0.85); backdrop-filter: blur(20px);
+      position: sticky; top: 0; z-index: 100;
+      animation: slide-down 0.5s both;
+    }
+    @keyframes slide-down { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+    .nav-brand { display: flex; align-items: center; gap: 10px; }
+    .nav-logo-icon {
+      font-size: 24px; background: var(--gradient-main);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      filter: drop-shadow(0 0 10px hsl(260,90%,65%,0.5));
+      animation: logo-pulse 3s ease-in-out infinite;
+    }
+    @keyframes logo-pulse { 0%,100% { filter: drop-shadow(0 0 10px hsl(260,90%,65%,0.5)); } 50% { filter: drop-shadow(0 0 22px hsl(260,90%,65%,0.9)); } }
+    .nav-logo-text {
+      font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700;
+      background: var(--gradient-main); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    .nav-right { display: flex; align-items: center; gap: 16px; }
+    .nav-user {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 14px; border-radius: 50px;
+      background: hsl(230,25%,14%); border: 1px solid hsl(230,25%,22%);
+    }
+    .nav-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      background: var(--gradient-main); display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .nav-user-name { font-size: 13px; font-weight: 600; color: var(--clr-text-primary); }
+    .nav-user-email { font-size: 11px; color: var(--clr-text-faint); }
+
+    .signout-btn {
+      display: flex; align-items: center; gap: 7px; padding: 9px 18px;
+      background: hsl(355,50%,18%); border: 1px solid hsl(355,50%,28%);
+      border-radius: 50px; color: hsl(355,85%,68%); font-family: inherit;
+      font-size: 13px; font-weight: 600; cursor: pointer;
+      transition: all var(--trans-med);
+    }
+    .signout-btn:hover { background: hsl(355,60%,22%); border-color: hsl(355,70%,40%); transform: translateY(-1px); }
+
+    /* ---- Main content ---- */
+    .main-content { flex: 1; padding: 40px; max-width: 1200px; margin: 0 auto; width: 100%; }
+
+    /* ---- Page header ---- */
+    .page-header { margin-bottom: 36px; animation: fade-up 0.6s 0.1s both; }
+    @keyframes fade-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+    .page-header h1 { font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 800; margin-bottom: 6px; }
+    .page-header h1 span { background: var(--gradient-main); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .page-header p { color: var(--clr-text-muted); font-size: 14px; }
+
+    /* ---- Stats row ---- */
+    .stats-row {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+      margin-bottom: 32px; animation: fade-up 0.6s 0.2s both;
+    }
+    .stat-card {
+      background: var(--clr-bg-card); border: 1px solid hsl(230,25%,18%);
+      border-radius: 16px; padding: 22px 24px;
+      display: flex; align-items: center; gap: 16px;
+      transition: all var(--trans-med); cursor: default;
+    }
+    .stat-card:hover { border-color: hsl(260,50%,35%); transform: translateY(-2px); box-shadow: 0 8px 32px hsl(260,90%,65%,0.1); }
+    .stat-icon {
+      width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .stat-icon.violet { background: hsl(260,50%,18%); border: 1px solid hsl(260,50%,30%); }
+    .stat-icon.teal   { background: hsl(180,50%,12%); border: 1px solid hsl(180,50%,25%); }
+    .stat-icon.blue   { background: hsl(210,50%,14%); border: 1px solid hsl(210,50%,28%); }
+    .stat-num { font-family: 'Outfit', sans-serif; font-size: 26px; font-weight: 800; line-height: 1; margin-bottom: 2px; }
+    .stat-label { font-size: 12px; color: var(--clr-text-muted); }
+
+    /* ---- Upload section ---- */
+    .upload-section { animation: fade-up 0.6s 0.3s both; margin-bottom: 32px; }
+    .section-title {
+      font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700;
+      margin-bottom: 16px; display: flex; align-items: center; gap: 10px;
+    }
+    .section-badge {
+      font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 50px;
+      background: hsl(260,50%,18%); border: 1px solid hsl(260,50%,30%); color: hsl(260,80%,75%);
+    }
+
+    /* Drop zone */
+    .drop-zone {
+      border: 2px dashed hsl(230,25%,28%); border-radius: 20px;
+      background: hsl(230,28%,9%); padding: 56px 40px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+      cursor: pointer; transition: all var(--trans-med); text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .drop-zone::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at 50% 50%, hsl(260,80%,60%,0.04), transparent 70%);
+      opacity: 0; transition: opacity var(--trans-med);
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: hsl(260,70%,55%); background: hsl(230,28%,11%);
+      box-shadow: 0 0 40px hsl(260,90%,65%,0.12), inset 0 0 40px hsl(260,90%,65%,0.04);
+    }
+    .drop-zone:hover::before, .drop-zone.drag-over::before { opacity: 1; }
+    .drop-zone.drag-over { border-style: solid; border-color: var(--clr-accent-1); }
+
+    .drop-icon {
+      width: 72px; height: 72px; border-radius: 18px;
+      background: hsl(260,40%,16%); border: 1px solid hsl(260,40%,28%);
+      display: flex; align-items: center; justify-content: center; font-size: 30px;
+      transition: all var(--trans-med); animation: float-icon 3s ease-in-out infinite;
+    }
+    @keyframes float-icon { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    .drop-zone:hover .drop-icon, .drop-zone.drag-over .drop-icon {
+      background: hsl(260,50%,22%); border-color: hsl(260,70%,50%);
+      box-shadow: 0 0 24px hsl(260,90%,65%,0.3);
+    }
+
+    .drop-title { font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700; }
+    .drop-sub { font-size: 13px; color: var(--clr-text-muted); line-height: 1.6; }
+    .drop-sub span { color: hsl(260,80%,72%); font-weight: 600; }
+
+    .drop-types { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
+    .type-badge {
+      font-size: 11.5px; font-weight: 600; padding: 4px 12px; border-radius: 50px;
+      background: hsl(230,25%,16%); border: 1px solid hsl(230,25%,24%); color: var(--clr-text-muted);
+    }
+
+    #file-input { display: none; }
+
+    .browse-btn {
+      margin-top: 6px; padding: 11px 28px; border-radius: 50px;
+      background: var(--gradient-btn); border: none; color: #fff;
+      font-family: inherit; font-size: 13.5px; font-weight: 700;
+      cursor: pointer; transition: all var(--trans-med);
+      box-shadow: 0 4px 20px hsl(260,90%,65%,0.3);
+    }
+    .browse-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 28px hsl(260,90%,65%,0.5); }
+
+    /* ---- File info bar ---- */
+    .file-info-bar {
+      display: none; align-items: center; justify-content: space-between; gap: 16px;
+      padding: 16px 22px; border-radius: 14px; margin-top: 16px;
+      background: hsl(145,30%,10%); border: 1px solid hsl(145,40%,22%);
+      animation: fade-up 0.3s both;
+    }
+    .file-info-bar.visible { display: flex; }
+    .file-info-left { display: flex; align-items: center; gap: 14px; }
+    .file-icon-box {
+      width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
+      background: hsl(145,40%,14%); border: 1px solid hsl(145,40%,25%);
+      display: flex; align-items: center; justify-content: center; font-size: 20px;
+    }
+    .file-name { font-size: 14px; font-weight: 600; color: var(--clr-text-primary); }
+    .file-size { font-size: 12px; color: var(--clr-text-muted); }
+    .file-clear-btn {
+      background: none; border: 1px solid hsl(355,40%,28%); color: hsl(355,80%,65%);
+      padding: 7px 14px; border-radius: 50px; font-family: inherit; font-size: 12px;
+      cursor: pointer; transition: all var(--trans-fast); font-weight: 600;
+    }
+    .file-clear-btn:hover { background: hsl(355,40%,14%); }
+
+    /* ---- Upload progress ---- */
+    .upload-progress { display: none; margin-top: 12px; animation: fade-up 0.3s both; }
+    .upload-progress.visible { display: block; }
+    .progress-bar-wrap { height: 6px; background: hsl(230,25%,18%); border-radius: 6px; overflow: hidden; }
+    .progress-fill {
+      height: 100%; width: 0%; border-radius: 6px;
+      background: var(--gradient-main); transition: width 0.4s ease;
+    }
+    .progress-label { font-size: 12px; color: var(--clr-text-muted); margin-top: 6px; text-align: right; }
+
+    /* ---- Process button ---- */
+    .process-btn-wrap { margin-top: 20px; display: none; }
+    .process-btn-wrap.visible { display: flex; gap: 12px; align-items: center; }
+    .process-btn {
+      padding: 13px 32px; border-radius: 12px; background: var(--gradient-btn);
+      border: none; color: #fff; font-family: inherit; font-size: 14.5px; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; gap: 10px;
+      transition: all var(--trans-med); box-shadow: 0 4px 24px hsl(260,90%,65%,0.35);
+    }
+    .process-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px hsl(260,90%,65%,0.55); }
+    .process-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .process-spinner { width: 16px; height: 16px; border: 2px solid hsl(0,0%,100%,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
+    .sheet-select-label { font-size: 13px; color: var(--clr-text-muted); }
+    .sheet-select {
+      padding: 9px 14px; background: hsl(230,25%,14%); border: 1px solid hsl(230,25%,26%);
+      border-radius: 10px; color: var(--clr-text-primary); font-family: inherit; font-size: 13px;
+      cursor: pointer; outline: none;
+    }
+
+    /* ---- Preview Table Section ---- */
+    .preview-section { animation: fade-up 0.5s both; display: none; }
+    .preview-section.visible { display: block; }
+
+    .preview-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px; flex-wrap: wrap; gap: 12px;
+    }
+    .preview-meta { display: flex; gap: 10px; flex-wrap: wrap; }
+    .meta-badge {
+      font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 50px;
+      background: hsl(260,30%,16%); border: 1px solid hsl(260,30%,26%); color: hsl(260,70%,72%);
+    }
+    .meta-badge.teal { background: hsl(180,30%,12%); border-color: hsl(180,40%,24%); color: hsl(180,70%,65%); }
+    .meta-badge.green { background: hsl(145,30%,10%); border-color: hsl(145,40%,22%); color: hsl(145,60%,58%); }
+
+    .export-btn {
+      display: flex; align-items: center; gap: 7px; padding: 9px 20px;
+      border-radius: 10px; background: hsl(145,40%,12%); border: 1px solid hsl(145,40%,24%);
+      color: hsl(145,60%,58%); font-family: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: all var(--trans-fast);
+    }
+    .export-btn:hover { background: hsl(145,40%,16%); transform: translateY(-1px); }
+
+    /* Table container */
+    .table-container {
+      border-radius: 16px; overflow: hidden;
+      border: 1px solid hsl(230,25%,18%);
+      background: var(--clr-bg-card);
+    }
+    .table-scroll { overflow-x: auto; max-height: 480px; overflow-y: auto; }
+    .table-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+    .table-scroll::-webkit-scrollbar-track { background: hsl(230,25%,12%); }
+    .table-scroll::-webkit-scrollbar-thumb { background: hsl(230,25%,28%); border-radius: 3px; }
+    .table-scroll::-webkit-scrollbar-thumb:hover { background: hsl(260,50%,45%); }
+
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table thead { position: sticky; top: 0; z-index: 10; }
+    .data-table th {
+      background: hsl(230,35%,12%); padding: 13px 16px; text-align: left;
+      font-size: 11px; font-weight: 700; color: var(--clr-text-faint);
+      text-transform: uppercase; letter-spacing: 0.6px; white-space: nowrap;
+      border-bottom: 1px solid hsl(230,25%,18%);
+    }
+    .data-table th:first-child { color: var(--clr-text-faint); }
+    .data-table td {
+      padding: 12px 16px; border-bottom: 1px solid hsl(230,25%,13%);
+      color: var(--clr-text-primary); white-space: nowrap; max-width: 200px;
+      overflow: hidden; text-overflow: ellipsis;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tbody tr { transition: background var(--trans-fast); }
+    .data-table tbody tr:hover { background: hsl(230,28%,13%); }
+    .data-table td:first-child { color: var(--clr-text-faint); font-size: 11px; font-weight: 600; }
+
+    /* Row number */
+    .row-num { width: 48px; }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center; padding: 60px 40px;
+      border: 1px dashed hsl(230,25%,20%); border-radius: 16px;
+      background: hsl(230,28%,9%);
+    }
+    .empty-state-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.6; }
+    .empty-state h3 { font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+    .empty-state p { font-size: 13px; color: var(--clr-text-muted); }
+
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed; bottom: 28px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: hsl(230,30%,14%); border: 1px solid hsl(230,30%,24%);
+      border-radius: 50px; padding: 13px 26px; font-size: 13.5px; font-weight: 500;
+      color: var(--clr-text-primary); box-shadow: 0 16px 48px hsl(0,0%,0%,0.45);
+      z-index: 9999; opacity: 0; transition: all var(--trans-med);
+      white-space: nowrap; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.success { border-color: hsl(145,70%,40%); color: hsl(145,70%,65%); }
+    .toast.error   { border-color: hsl(355,85%,50%); color: hsl(355,85%,70%); }
+    .toast.info    { border-color: hsl(260,70%,55%); color: hsl(260,70%,75%); }
+
+    /* ---- Responsive ---- */
+    @media (max-width: 768px) {
+      .navbar { padding: 14px 20px; }
+      .main-content { padding: 24px 20px; }
+      .stats-row { grid-template-columns: 1fr; }
+      .drop-zone { padding: 40px 24px; }
+      .nav-user-email { display: none; }
+    }
+    @media (max-width: 480px) {
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      .page-header h1 { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading screen -->
+  <div id="loading-screen">
+    <div class="loading-logo">&#11041; NexAuth</div>
+    <div class="loading-spinner"></div>
+  </div>
+
+  <!-- Background particles -->
+  <canvas id="particles-canvas"></canvas>
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
+  <!-- Dashboard layout -->
+  <div class="dashboard-layout" id="dashboard-layout" style="display:none;">
+
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="nav-brand">
+        <span class="nav-logo-icon">&#11041;</span>
+        <span class="nav-logo-text">NexAuth</span>
+      </div>
+      <div class="nav-right">
+        <div class="nav-user">
+          <div class="nav-avatar" id="nav-avatar">U</div>
+          <div>
+            <div class="nav-user-name" id="nav-user-name">User</div>
+            <div class="nav-user-email" id="nav-user-email">Loading…</div>
+          </div>
+        </div>
+        <button class="signout-btn" id="signout-btn">
+          <span>&#128682;</span> Sign Out
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main content -->
+    <main class="main-content">
+
+      <!-- Page header -->
+      <div class="page-header">
+        <h1>Welcome Back, <span id="welcome-name">User</span>! 👋</h1>
+        <p>Upload your Excel spreadsheet to view, analyze, and manage your data.</p>
+      </div>
+
+      <!-- Stats row -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon violet">&#128196;</div>
+          <div>
+            <div class="stat-num" id="stat-rows">—</div>
+            <div class="stat-label">Total Rows</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon teal">&#128202;</div>
+          <div>
+            <div class="stat-num" id="stat-cols">—</div>
+            <div class="stat-label">Columns</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue">&#128209;</div>
+          <div>
+            <div class="stat-num" id="stat-sheets">—</div>
+            <div class="stat-label">Sheets</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload section -->
+      <div class="upload-section">
+        <div class="section-title">
+          &#128196; Upload Excel File
+          <span class="section-badge">Drag &amp; Drop</span>
+        </div>
+
+        <!-- Drop zone -->
+        <div class="drop-zone" id="drop-zone">
+          <div class="drop-icon">&#128196;</div>
+          <div class="drop-title">Drop your Excel file here</div>
+          <p class="drop-sub">
+            Drag and drop your spreadsheet, or <span>click to browse</span><br/>
+            All sheets will be parsed automatically
+          </p>
+          <div class="drop-types">
+            <span class="type-badge">.xlsx</span>
+            <span class="type-badge">.xls</span>
+            <span class="type-badge">.xlsm</span>
+            <span class="type-badge">.csv</span>
+          </div>
+          <button class="browse-btn" id="browse-btn" type="button">&#128193; Browse File</button>
+          <input type="file" id="file-input" accept=".xlsx,.xls,.xlsm,.csv" />
+        </div>
+
+        <!-- File info bar -->
+        <div class="file-info-bar" id="file-info-bar">
+          <div class="file-info-left">
+            <div class="file-icon-box">&#128196;</div>
+            <div>
+              <div class="file-name" id="file-name-display">—</div>
+              <div class="file-size" id="file-size-display">—</div>
+            </div>
+          </div>
+          <button class="file-clear-btn" id="file-clear-btn">&#10005; Remove</button>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="upload-progress" id="upload-progress">
+          <div class="progress-bar-wrap">
+            <div class="progress-fill" id="progress-fill"></div>
+          </div>
+          <div class="progress-label" id="progress-label">Parsing…</div>
+        </div>
+
+        <!-- Process controls -->
+        <div class="process-btn-wrap" id="process-btn-wrap">
+          <button class="process-btn" id="process-btn">
+            <span class="process-spinner" id="process-spinner"></span>
+            <span id="process-btn-text">&#9889; Parse &amp; Preview</span>
+          </button>
+          <label class="sheet-select-label" for="sheet-select" style="display:none;" id="sheet-select-label">Sheet:</label>
+          <select class="sheet-select" id="sheet-select" style="display:none;"></select>
+        </div>
+      </div>
+
+      <!-- Preview section -->
+      <div class="preview-section" id="preview-section">
+        <div class="section-title">&#128202; Data Preview</div>
+
+        <div class="preview-header">
+          <div class="preview-meta">
+            <span class="meta-badge" id="badge-rows">0 rows</span>
+            <span class="meta-badge teal" id="badge-cols">0 columns</span>
+            <span class="meta-badge green" id="badge-sheet">Sheet 1</span>
+          </div>
+          <button class="export-btn" id="export-csv-btn">
+            &#11123; Export CSV
+          </button>
+        </div>
+
+        <div class="table-container">
+          <div class="table-scroll">
+            <table class="data-table" id="data-table">
+              <thead id="table-head"></thead>
+              <tbody id="table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state (shown before upload) -->
+      <div class="empty-state" id="empty-state">
+        <div class="empty-state-icon">&#128196;</div>
+        <h3>No Data Yet</h3>
+        <p>Upload an Excel file above to see your data displayed in a beautiful table.</p>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" role="alert" aria-live="polite"></div>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- SheetJS (xlsx) for Excel parsing -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+
+  <script>
+    'use strict';
+
+    /* ---- Supabase ---- */
+    const SUPABASE_URL     = 'https://iqvrngypcbkwzkeiaphl.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_IhygRGJfXcw67gCCD59WQg_QTRfUzyk';
+    const { createClient } = supabase;
+    const supabaseClient   = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    /* ---- Auth guard ---- */
+    async function initDashboard() {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      const user = session.user;
+      const meta = user.user_metadata || {};
+      const firstName = meta.first_name || meta.full_name?.split(' ')[0] || user.email?.split('@')[0] || 'User';
+      const fullName  = meta.full_name || firstName;
+
+      // Populate UI
+      document.getElementById('welcome-name').textContent  = firstName;
+      document.getElementById('nav-user-name').textContent = fullName;
+      document.getElementById('nav-user-email').textContent = user.email || '';
+      document.getElementById('nav-avatar').textContent    = firstName.charAt(0).toUpperCase();
+
+      // Hide loading, show dashboard
+      document.getElementById('loading-screen').style.display = 'none';
+      document.getElementById('dashboard-layout').style.display = 'flex';
+      document.getElementById('dashboard-layout').style.flexDirection = 'column';
+    }
+
+    initDashboard();
+
+    /* ---- Particle canvas ---- */
+    (function initParticles() {
+      const canvas = document.getElementById('particles-canvas');
+      const ctx    = canvas.getContext('2d');
+      let particles = [];
+      function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+      resize(); window.addEventListener('resize', resize);
+      function rnd(a,b) { return a + Math.random()*(b-a); }
+      function mkP() { return { x:rnd(0,canvas.width),y:rnd(0,canvas.height),r:rnd(0.5,1.8),dx:rnd(-0.25,0.25),dy:rnd(-0.35,-0.05),alpha:rnd(0.1,0.5),hue:Math.random()>0.5?260:180 }; }
+      for (let i=0;i<90;i++) particles.push(mkP());
+      (function draw() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        for (const p of particles) {
+          ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+          ctx.fillStyle=`hsla(${p.hue},80%,70%,${p.alpha})`; ctx.fill();
+          p.x+=p.dx; p.y+=p.dy;
+          if (p.y<-5||p.x<-5||p.x>canvas.width+5) { Object.assign(p,mkP()); p.y=canvas.height+5; }
+        }
+        requestAnimationFrame(draw);
+      })();
+    })();
+
+    /* ---- Toast ---- */
+    let toastTimer = null;
+    function showToast(msg, type='info', dur=3200) {
+      const t = document.getElementById('toast');
+      t.textContent = msg; t.className = `toast ${type} show`;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { t.className = 'toast'; }, dur);
+    }
+
+    /* ---- Sign out ---- */
+    document.getElementById('signout-btn').addEventListener('click', async () => {
+      await supabaseClient.auth.signOut();
+      showToast('Signed out successfully. Goodbye! 👋', 'info');
+      setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+    });
+
+    /* ============================================================
+       EXCEL UPLOAD & PARSING
+       ============================================================ */
+    let workbook = null;
+    let parsedData = [];
+    let currentSheet = '';
+
+    const dropZone      = document.getElementById('drop-zone');
+    const fileInput     = document.getElementById('file-input');
+    const browseBtn     = document.getElementById('browse-btn');
+    const fileInfoBar   = document.getElementById('file-info-bar');
+    const fileNameDisp  = document.getElementById('file-name-display');
+    const fileSizeDisp  = document.getElementById('file-size-display');
+    const fileClearBtn  = document.getElementById('file-clear-btn');
+    const uploadProg    = document.getElementById('upload-progress');
+    const progressFill  = document.getElementById('progress-fill');
+    const progressLabel = document.getElementById('progress-label');
+    const processBtnWrap = document.getElementById('process-btn-wrap');
+    const processBtn    = document.getElementById('process-btn');
+    const processBtnText = document.getElementById('process-btn-text');
+    const processSpinner = document.getElementById('process-spinner');
+    const sheetSelect   = document.getElementById('sheet-select');
+    const sheetSelectLabel = document.getElementById('sheet-select-label');
+    const previewSection = document.getElementById('preview-section');
+    const emptyState    = document.getElementById('empty-state');
+
+    browseBtn.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files[0]) handleFile(e.target.files[0]);
+    });
+
+    // Drag-and-drop events
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault(); dropZone.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file) handleFile(file);
+    });
+
+    document.addEventListener('dragover', (e) => e.preventDefault());
+    document.addEventListener('drop', (e) => e.preventDefault());
+
+    function formatBytes(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+      return (bytes/(1024*1024)).toFixed(2) + ' MB';
+    }
+
+    function handleFile(file) {
+      const allowed = ['.xlsx','.xls','.xlsm','.csv'];
+      const ext = '.' + file.name.split('.').pop().toLowerCase();
+      if (!allowed.includes(ext)) {
+        showToast('Please upload an Excel or CSV file (.xlsx, .xls, .csv)', 'error');
+        return;
+      }
+
+      // Show file info bar
+      fileNameDisp.textContent = file.name;
+      fileSizeDisp.textContent = formatBytes(file.size);
+      fileInfoBar.classList.add('visible');
+
+      // Show progress
+      uploadProg.classList.add('visible');
+      progressFill.style.width = '0%';
+      progressLabel.textContent = 'Reading file…';
+
+      // Animate progress
+      let prog = 0;
+      const progInterval = setInterval(() => {
+        prog = Math.min(prog + Math.random()*18, 85);
+        progressFill.style.width = prog + '%';
+      }, 120);
+
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        clearInterval(progInterval);
+        progressFill.style.width = '100%';
+        progressLabel.textContent = 'File ready — click Parse & Preview';
+
+        try {
+          workbook = XLSX.read(ev.target.result, { type: 'binary' });
+          const sheets = workbook.SheetNames;
+
+          // Populate sheet selector
+          sheetSelect.innerHTML = '';
+          sheets.forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name; opt.textContent = name;
+            sheetSelect.appendChild(opt);
+          });
+
+          if (sheets.length > 1) {
+            sheetSelectLabel.style.display = 'block';
+            sheetSelect.style.display = 'block';
+          }
+
+          // Update stats
+          document.getElementById('stat-sheets').textContent = sheets.length;
+
+          processBtnWrap.classList.add('visible');
+          showToast('File loaded! Click "Parse & Preview" to view data.', 'success');
+        } catch (err) {
+          showToast('Failed to read file: ' + err.message, 'error');
+        }
+      };
+      reader.onerror = () => { clearInterval(progInterval); showToast('Error reading file.', 'error'); };
+      reader.readAsBinaryString(file);
+    }
+
+    fileClearBtn.addEventListener('click', () => {
+      workbook = null;
+      parsedData = [];
+      fileInput.value = '';
+      fileInfoBar.classList.remove('visible');
+      uploadProg.classList.remove('visible');
+      processBtnWrap.classList.remove('visible');
+      previewSection.classList.remove('visible');
+      emptyState.style.display = 'block';
+      sheetSelectLabel.style.display = 'none';
+      sheetSelect.style.display = 'none';
+      sheetSelect.innerHTML = '';
+      document.getElementById('stat-rows').textContent = '—';
+      document.getElementById('stat-cols').textContent = '—';
+      document.getElementById('stat-sheets').textContent = '—';
+      showToast('File removed.', 'info');
+    });
+
+    processBtn.addEventListener('click', () => {
+      if (!workbook) { showToast('No file loaded.', 'error'); return; }
+      parseSheet(sheetSelect.value || workbook.SheetNames[0]);
+    });
+
+    sheetSelect.addEventListener('change', () => {
+      if (workbook && previewSection.classList.contains('visible')) {
+        parseSheet(sheetSelect.value);
+      }
+    });
+
+    function parseSheet(sheetName) {
+      processBtn.disabled = true;
+      processSpinner.style.display = 'inline-block';
+      processBtnText.textContent = 'Parsing…';
+
+      setTimeout(() => {
+        try {
+          const ws = workbook.Sheets[sheetName];
+          const json = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+          if (!json || json.length === 0) {
+            showToast('Sheet is empty!', 'error');
+            processBtn.disabled = false;
+            processSpinner.style.display = 'none';
+            processBtnText.innerHTML = '&#9889; Parse &amp; Preview';
+            return;
+          }
+
+          parsedData = json;
+          currentSheet = sheetName;
+          renderTable(json, sheetName);
+
+          processBtn.disabled = false;
+          processSpinner.style.display = 'none';
+          processBtnText.innerHTML = '&#9889; Re-Parse';
+          showToast('Data parsed successfully! ✓', 'success');
+        } catch (err) {
+          showToast('Parse error: ' + err.message, 'error');
+          processBtn.disabled = false;
+          processSpinner.style.display = 'none';
+          processBtnText.innerHTML = '&#9889; Parse &amp; Preview';
+        }
+      }, 400);
+    }
+
+    function renderTable(data, sheetName) {
+      const headers = data[0] || [];
+      const rows    = data.slice(1);
+
+      // Update stats
+      document.getElementById('stat-rows').textContent = rows.length.toLocaleString();
+      document.getElementById('stat-cols').textContent = headers.length;
+      document.getElementById('badge-rows').textContent = rows.length.toLocaleString() + ' rows';
+      document.getElementById('badge-cols').textContent = headers.length + ' columns';
+      document.getElementById('badge-sheet').textContent = sheetName;
+
+      // Build thead
+      const thead = document.getElementById('table-head');
+      thead.innerHTML = '';
+      const hRow = document.createElement('tr');
+
+      // Row # column
+      const thNum = document.createElement('th');
+      thNum.textContent = '#'; thNum.className = 'row-num';
+      hRow.appendChild(thNum);
+
+      headers.forEach(h => {
+        const th = document.createElement('th');
+        th.textContent = h !== '' ? h : '(empty)';
+        hRow.appendChild(th);
+      });
+      thead.appendChild(hRow);
+
+      // Build tbody (limit to 500 rows for performance)
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '';
+      const limit = Math.min(rows.length, 500);
+
+      const fragment = document.createDocumentFragment();
+      for (let i = 0; i < limit; i++) {
+        const tr = document.createElement('tr');
+        const tdNum = document.createElement('td');
+        tdNum.textContent = i + 1;
+        tr.appendChild(tdNum);
+
+        headers.forEach((_, ci) => {
+          const td = document.createElement('td');
+          const val = rows[i][ci];
+          td.textContent = val !== undefined && val !== null ? String(val) : '';
+          td.title = td.textContent;
+          tr.appendChild(td);
+        });
+        fragment.appendChild(tr);
+      }
+      tbody.appendChild(fragment);
+
+      // Show/hide
+      emptyState.style.display = 'none';
+      previewSection.classList.add('visible');
+
+      if (rows.length > 500) {
+        showToast(`Showing first 500 of ${rows.length.toLocaleString()} rows.`, 'info', 4000);
+      }
+    }
+
+    /* ---- Export CSV ---- */
+    document.getElementById('export-csv-btn').addEventListener('click', () => {
+      if (!parsedData.length) return;
+      const ws = XLSX.utils.aoa_to_sheet(parsedData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, currentSheet || 'Sheet1');
+      XLSX.writeFile(wb, (currentSheet || 'export') + '_nexauth.csv', { bookType: 'csv' });
+      showToast('CSV exported successfully! ✓', 'success');
+    });
+  </script>
+</body>
+</html>
