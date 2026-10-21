@@ -1,15 +1,25 @@
 /* =============================================
-   NexAuth — JavaScript Logic
+   NexAuth — JavaScript Logic (Supabase Edition)
+   - Supabase Auth: sign-in, register, OAuth, forgot-password
    - Page switching with animations
    - Form validation
    - Password strength meter
    - Password visibility toggle
    - Toast notifications
    - Particle canvas animation
-   - Social button interactions
    ============================================= */
 
 'use strict';
+
+/* ============================================================
+   SUPABASE INITIALIZATION
+   ============================================================ */
+const SUPABASE_URL      = 'https://iqvrngypcbkwzkeiaphl.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_IhygRGJfXcw67gCCD59WQg_QTRfUzyk';
+
+// supabase is exposed globally by the CDN script loaded in index.html
+const { createClient } = supabase;
+const supabaseClient   = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ============================================================
    PARTICLE CANVAS
@@ -81,7 +91,7 @@ function showToast(message, type = 'info', duration = 3200) {
 /* ============================================================
    PAGE SWITCHING
    ============================================================ */
-const signinCard  = document.getElementById('signin-card');
+const signinCard   = document.getElementById('signin-card');
 const registerCard = document.getElementById('register-card');
 
 function switchToRegister() {
@@ -121,7 +131,7 @@ function setupPasswordToggle(btnId, inputId) {
   btn.addEventListener('click', () => {
     const isHidden = input.type === 'password';
     input.type = isHidden ? 'text' : 'password';
-    btn.textContent = isHidden ? '\uD83D\uDE48' : '\uD83D\uDC41'; // monkey / eye
+    btn.textContent = isHidden ? '\uD83D\uDE48' : '\uD83D\uDC41';
     btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
   });
 }
@@ -144,16 +154,16 @@ function getPasswordStrength(password) {
   if (/[A-Z]/.test(password)) score++;
   if (/[0-9]/.test(password)) score++;
   if (/[^a-zA-Z0-9]/.test(password)) score++;
-  return score; // 0–6
+  return score; // 0-6
 }
 
 const strengthConfig = [
-  { pct: 0,   label: 'Strength',  color: 'hsl(230,25%,22%)' },
-  { pct: 16,  label: 'Very Weak', color: 'hsl(355,85%,55%)' },
-  { pct: 32,  label: 'Weak',      color: 'hsl(20,90%,55%)' },
-  { pct: 50,  label: 'Fair',      color: 'hsl(38,92%,55%)' },
-  { pct: 68,  label: 'Good',      color: 'hsl(145,65%,45%)' },
-  { pct: 84,  label: 'Strong',    color: 'hsl(145,70%,50%)' },
+  { pct: 0,   label: 'Strength',    color: 'hsl(230,25%,22%)' },
+  { pct: 16,  label: 'Very Weak',   color: 'hsl(355,85%,55%)' },
+  { pct: 32,  label: 'Weak',        color: 'hsl(20,90%,55%)'  },
+  { pct: 50,  label: 'Fair',        color: 'hsl(38,92%,55%)'  },
+  { pct: 68,  label: 'Good',        color: 'hsl(145,65%,45%)' },
+  { pct: 84,  label: 'Strong',      color: 'hsl(145,70%,50%)' },
   { pct: 100, label: 'Very Strong', color: 'hsl(160,75%,48%)' },
 ];
 
@@ -190,14 +200,23 @@ function isValidEmail(email) {
 }
 
 /* ============================================================
-   SIGN IN FORM
+   BUTTON LOADING STATE HELPERS
+   ============================================================ */
+function setButtonLoading(btn, isLoading) {
+  btn.disabled = isLoading;
+  btn.querySelector('.btn-text').hidden   = isLoading;
+  btn.querySelector('.btn-arrow').hidden  = isLoading;
+  btn.querySelector('.btn-loader').hidden = !isLoading;
+}
+
+/* ============================================================
+   SIGN IN FORM  ←  Supabase signInWithPassword
    ============================================================ */
 const signinForm = document.getElementById('signin-form');
 const signinBtn  = document.getElementById('signin-submit-btn');
 
 function validateSignIn() {
   let valid = true;
-
   const email    = document.getElementById('si-email').value.trim();
   const password = document.getElementById('si-password').value;
 
@@ -220,7 +239,6 @@ function validateSignIn() {
   return valid;
 }
 
-// Live validation on blur
 document.getElementById('si-email').addEventListener('blur', () => {
   const v = document.getElementById('si-email').value.trim();
   if (!v) setFieldState('si-email-group', 'si-email-err', 'Email address is required.');
@@ -228,34 +246,35 @@ document.getElementById('si-email').addEventListener('blur', () => {
   else setFieldState('si-email-group', 'si-email-err', null);
 });
 
-signinForm.addEventListener('submit', (e) => {
+signinForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!validateSignIn()) return;
 
-  // Simulate loading
-  signinBtn.disabled = true;
-  signinBtn.querySelector('.btn-text').hidden  = true;
-  signinBtn.querySelector('.btn-arrow').hidden = true;
-  signinBtn.querySelector('.btn-loader').hidden = false;
+  const email    = document.getElementById('si-email').value.trim();
+  const password = document.getElementById('si-password').value;
 
-  setTimeout(() => {
-    signinBtn.disabled = false;
-    signinBtn.querySelector('.btn-text').hidden  = false;
-    signinBtn.querySelector('.btn-arrow').hidden = false;
-    signinBtn.querySelector('.btn-loader').hidden = true;
-    showToast('Welcome back! Signed in successfully. ✓', 'success');
-  }, 1800);
+  setButtonLoading(signinBtn, true);
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+  setButtonLoading(signinBtn, false);
+
+  if (error) {
+    showToast('Sign in failed: ' + error.message, 'error');
+  } else {
+    showToast('Welcome back! Signed in successfully. \u2713', 'success');
+    setTimeout(() => { window.location.href = 'dashboard.html'; }, 1200);
+  }
 });
 
 /* ============================================================
-   REGISTER FORM
+   REGISTER FORM  ←  Supabase signUp
    ============================================================ */
 const registerForm = document.getElementById('register-form');
 const registerBtn  = document.getElementById('register-submit-btn');
 
 function validateRegister() {
   let valid = true;
-
   const fname    = document.getElementById('reg-fname').value.trim();
   const lname    = document.getElementById('reg-lname').value.trim();
   const email    = document.getElementById('reg-email').value.trim();
@@ -263,7 +282,6 @@ function validateRegister() {
   const cpass    = document.getElementById('reg-cpassword').value;
   const terms    = document.getElementById('reg-terms').checked;
 
-  // First name
   if (!fname) {
     valid = setFieldState('reg-fname-group', 'reg-fname-err', 'First name is required.') && valid;
   } else if (fname.length < 2) {
@@ -272,14 +290,12 @@ function validateRegister() {
     setFieldState('reg-fname-group', 'reg-fname-err', null);
   }
 
-  // Last name
   if (!lname) {
     valid = setFieldState('reg-lname-group', 'reg-lname-err', 'Last name is required.') && valid;
   } else {
     setFieldState('reg-lname-group', 'reg-lname-err', null);
   }
 
-  // Email
   if (!email) {
     valid = setFieldState('reg-email-group', 'reg-email-err', 'Email address is required.') && valid;
   } else if (!isValidEmail(email)) {
@@ -288,7 +304,6 @@ function validateRegister() {
     setFieldState('reg-email-group', 'reg-email-err', null);
   }
 
-  // Password
   if (!password) {
     valid = setFieldState('reg-pass-group', 'reg-pass-err', 'Password is required.') && valid;
   } else if (password.length < 8) {
@@ -297,7 +312,6 @@ function validateRegister() {
     setFieldState('reg-pass-group', 'reg-pass-err', null);
   }
 
-  // Confirm password
   if (!cpass) {
     valid = setFieldState('reg-cpass-group', 'reg-cpass-err', 'Please confirm your password.') && valid;
   } else if (cpass !== password) {
@@ -306,7 +320,6 @@ function validateRegister() {
     setFieldState('reg-cpass-group', 'reg-cpass-err', null);
   }
 
-  // Terms
   const termsErr = document.getElementById('reg-terms-err');
   if (!terms) {
     termsErr.textContent = 'You must agree to the Terms of Service.';
@@ -318,7 +331,6 @@ function validateRegister() {
   return valid;
 }
 
-// Live validation on blur
 document.getElementById('reg-email').addEventListener('blur', () => {
   const v = document.getElementById('reg-email').value.trim();
   if (!v) setFieldState('reg-email-group', 'reg-email-err', 'Email address is required.');
@@ -336,45 +348,86 @@ document.getElementById('reg-cpassword').addEventListener('input', () => {
   }
 });
 
-registerForm.addEventListener('submit', (e) => {
+registerForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!validateRegister()) return;
 
-  // Simulate loading
-  registerBtn.disabled = true;
-  registerBtn.querySelector('.btn-text').hidden  = true;
-  registerBtn.querySelector('.btn-arrow').hidden = true;
-  registerBtn.querySelector('.btn-loader').hidden = false;
+  const fname    = document.getElementById('reg-fname').value.trim();
+  const lname    = document.getElementById('reg-lname').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
 
-  setTimeout(() => {
-    registerBtn.disabled = false;
-    registerBtn.querySelector('.btn-text').hidden  = false;
-    registerBtn.querySelector('.btn-arrow').hidden = false;
-    registerBtn.querySelector('.btn-loader').hidden = true;
-    showToast('Account created successfully! Welcome to NexAuth 🎉', 'success');
-    // Optionally redirect to sign in
+  setButtonLoading(registerBtn, true);
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        first_name: fname,
+        last_name:  lname,
+        full_name:  fname + ' ' + lname,
+      },
+    },
+  });
+
+  setButtonLoading(registerBtn, false);
+
+  if (error) {
+    showToast('Registration failed: ' + error.message, 'error');
+  } else if (data.user && !data.session) {
+    // Email confirmation required
+    showToast('Account created! Check your email to confirm your account. \uD83D\uDCE7', 'success', 5000);
+    setTimeout(switchToSignin, 3000);
+  } else {
+    showToast('Account created successfully! Welcome to NexAuth \uD83C\uDF89', 'success');
     setTimeout(switchToSignin, 1500);
-  }, 2000);
+  }
 });
 
 /* ============================================================
-   SOCIAL LOGIN BUTTONS
+   SOCIAL LOGIN  ←  Supabase signInWithOAuth
    ============================================================ */
-function socialLogin(provider) {
-  showToast(`Redirecting to ${provider} sign-in...`, 'info');
+async function socialLogin(provider) {
+  showToast('Redirecting to ' + provider + ' sign-in...', 'info');
+  const { error } = await supabaseClient.auth.signInWithOAuth({
+    provider: provider.toLowerCase(),
+    options: {
+      redirectTo: window.location.origin + '/dashboard.html',
+    },
+  });
+  if (error) {
+    showToast('OAuth error: ' + error.message, 'error');
+  }
 }
 
 document.getElementById('signin-google').addEventListener('click', () => socialLogin('Google'));
 document.getElementById('signin-github').addEventListener('click', () => socialLogin('GitHub'));
-document.getElementById('reg-google').addEventListener('click', () => socialLogin('Google'));
-document.getElementById('reg-github').addEventListener('click', () => socialLogin('GitHub'));
+document.getElementById('reg-google').addEventListener('click',   () => socialLogin('Google'));
+document.getElementById('reg-github').addEventListener('click',   () => socialLogin('GitHub'));
 
 /* ============================================================
-   FORGOT PASSWORD LINK
+   FORGOT PASSWORD  ←  Supabase resetPasswordForEmail
    ============================================================ */
-document.getElementById('forgot-pass-link').addEventListener('click', (e) => {
+document.getElementById('forgot-pass-link').addEventListener('click', async (e) => {
   e.preventDefault();
-  showToast('Password reset link sent to your email. 📧', 'info');
+  const email = document.getElementById('si-email').value.trim();
+
+  if (!email || !isValidEmail(email)) {
+    showToast('Please enter your email address above first.', 'error');
+    document.getElementById('si-email').focus();
+    return;
+  }
+
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + '/reset-password.html',
+  });
+
+  if (error) {
+    showToast('Reset failed: ' + error.message, 'error');
+  } else {
+    showToast('Password reset link sent to your email. \uD83D\uDCE7', 'success');
+  }
 });
 
 /* ============================================================
@@ -385,12 +438,22 @@ document.querySelectorAll('.field-input').forEach(input => {
   const icon = wrap && wrap.querySelector('.field-icon');
   if (!icon) return;
   input.addEventListener('focus', () => {
-    icon.style.opacity = '0.85';
-    icon.style.transform = 'scale(1.1)';
+    icon.style.opacity    = '0.85';
+    icon.style.transform  = 'scale(1.1)';
     icon.style.transition = 'all 150ms ease';
   });
   input.addEventListener('blur', () => {
-    icon.style.opacity = '';
+    icon.style.opacity   = '';
     icon.style.transform = '';
   });
 });
+
+/* ============================================================
+   SESSION CHECK — redirect logged-in users automatically
+   ============================================================ */
+(async () => {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) {
+    window.location.href = 'dashboard.html';
+  }
+})();
